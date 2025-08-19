@@ -414,7 +414,32 @@
             canvas.on('mouse:down', onMouseDown);
             canvas.on('mouse:up', onMouseUp);
             canvas.on('mouse:move', onMouseMove);
-            
+
+            // --- Add this block for mobile double-tap support ---
+            let lastTapTime = 0;
+            let lastTapX = 0;
+            let lastTapY = 0;
+
+            canvas.on('mouse:down', function (e) {
+              const now = Date.now();
+              const pointer = canvas.getPointer(e.e);
+              const x = pointer.x;
+              const y = pointer.y;
+
+              const timeDiff = now - lastTapTime;
+              const dist = Math.hypot(x - lastTapX, y - lastTapY);
+
+              if (timeDiff < 300 && dist < 20) {
+                // Treat as double-tap
+                onDoubleClick(e);
+                lastTapTime = 0; // reset
+              } else {
+                lastTapTime = now;
+                lastTapX = x;
+                lastTapY = y;
+              }
+            });
+
             // Draw initial grid and room outline
             drawGrid();
             drawRoomOutline();
