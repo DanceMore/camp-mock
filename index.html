@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Furniture Layout Planner</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #e0e0e0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #ffffff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        .controls {
+            background: #2d2d2d;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            border: 1px solid #404040;
+        }
+        .control-group {
+            display: inline-block;
+            margin-right: 20px;
+            margin-bottom: 10px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+        input, button, select, textarea {
+            padding: 8px 12px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background: #3d3d3d;
+            color: #ffffff;
+            transition: all 0.2s ease;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+        }
+        button {
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            border: none;
+            padding: 8px 15px;
+            font-weight: 500;
+        }
+        button:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .canvas-container {
+            background: #2d2d2d;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            text-align: center;
+            border: 1px solid #404040;
+        }
+        .canvas-wrapper {
+            position: relative;
+            display: inline-block;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+        }
+        .instructions {
+            margin-top: 15px;
+            color: #b0b0b0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .rotation-control {
+            margin-top: 15px;
+            padding: 15px;
+            background: #3d3d3d;
+            border-radius: 5px;
+            display: none;
+            border: 1px solid #555;
+        }
+        .rotation-control.active {
+            display: block;
+        }
+        .rotation-slider {
+            width: 200px;
+            margin: 0 10px;
+            accent-color: #007bff;
+        }
+        .grid-toggle {
+            margin-left: 10px;
+            background: #28a745;
+        }
+        .grid-toggle:hover {
+            background: #218838;
+        }
+        #rotationValue {
+            font-weight: bold;
+            color: #007bff;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+        }
+        .modal-content {
+            background-color: #2d2d2d;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 600px;
+            position: relative;
+            border: 1px solid #404040;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            right: 15px;
+            top: 10px;
+            transition: color 0.2s ease;
+        }
+        .close:hover {
+            color: #ffffff;
+        }
+        .room-editor {
+            margin-top: 20px;
+        }
+        .room-editor textarea {
+            width: 100%;
+            height: 150px;
+            font-family: monospace;
+            resize: vertical;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            border: 1px solid #555;
+        }
+        .room-presets {
+            margin: 15px 0;
+        }
+        .preset-button {
+            margin: 5px;
+            background: #28a745;
+        }
+        .preset-button:hover {
+            background: #218838;
+        }
+        .room-help {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 13px;
+            color: #b0b0b0;
+            border: 1px solid #404040;
+        }
+        h2, h3 {
+            color: #ffffff;
+            margin-top: 0;
+        }
+        /* Canvas styling for dark theme */
+        #canvas {
+            background: #1a1a1a !important;
+        }
+        /* Enhanced button styles for better visual hierarchy */
+        .control-group button:nth-child(2) {
+            background: #dc3545;
+        }
+        .control-group button:nth-child(2):hover {
+            background: #c82333;
+        }
+        .control-group button:nth-child(3) {
+            background: #6c757d;
+        }
+        .control-group button:nth-child(3):hover {
+            background: #5a6268;
+        }
+        /* Improved focus states */
+        button:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.5);
+        }
+        /* Better scrollbar for dark theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #2d2d2d;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏠 Furniture Layout Planner</h1>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label>Add Furniture:</label>
+                <select id="furnitureType">
+                    <option value="djbooth">DJ Booth (6x3ft)</option>
+                    <option value="pastack">PA Stack (3x2ft)</option>
+                    <option value="yurt">Yurt (12x12ft)</option>
+                    <option value="loveseat">Loveseat (4x2ft)</option>
+                    <option value="tent">Tent (8x6ft)</option>
+                    <option value="kitchen">Camp Kitchen (6x4ft)</option>
+                    <option value="bar">Bar (8x3ft)</option>
+                    <option value="stage">Stage (12x8ft)</option>
+                    <option value="generator">Generator (3x2ft)</option>
+                    <option value="cooler">Cooler (2x1.5ft)</option>
+                </select>
+                <button onclick="addFurniture()">Add Item</button>
+            </div>
+            
+            <div class="control-group">
+                <label>Actions:</label>
+                <button onclick="deleteSelected()">Delete Selected</button>
+                <button onclick="clearAll()">Clear All</button>
+                <button onclick="toggleGrid()" class="grid-toggle">Toggle Grid</button>
+            </div>
+            
+            <div class="control-group">
+                <label>Room:</label>
+                <button onclick="openRoomEditor()">Edit Room Shape</button>
+                <button onclick="saveRoom()">Save Room</button>
+                <button onclick="loadRoom()">Load Room</button>
+            </div>
+            
+            <div class="control-group">
+                <label>Layout:</label>
+                <button onclick="saveLayout()">Save Layout</button>
+                <button onclick="loadLayout()">Load Layout</button>
+            </div>
+        </div>
+        
+        <div class="canvas-container">
+            <div class="canvas-wrapper">
+                <canvas id="canvas" width="800" height="600"></canvas>
+            </div>
+            
+            <div id="rotationControl" class="rotation-control">
+                <label>Rotate Selected Item:</label>
+                <input type="range" id="rotationSlider" class="rotation-slider" 
+                       min="0" max="360" value="0" step="1"
+                       oninput="rotateSelectedToAngle(this.value)">
+                <span id="rotationValue">0°</span>
+                <button onclick="resetRotation()">Reset (0°)</button>
+            </div>
+            
+            <div class="instructions">
+                <strong>Instructions:</strong> 
+                Click to select • Drag to move • Use rotation handles or slider to rotate • 
+                Double-click to edit • Right-click to delete • Grid squares = 1 foot
+            </div>
+        </div>
+    </div>
+
+    <!-- Room Editor Modal -->
+    <div id="roomModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeRoomEditor()">&times;</span>
+            <h2>Edit Room Shape</h2>
+            
+            <div class="room-presets">
+                <h3>Room Presets:</h3>
+                <button class="preset-button" onclick="usePreset('rectangle')">Rectangle</button>
+                <button class="preset-button" onclick="usePreset('lshape')">L-Shape</button>
+                <button class="preset-button" onclick="usePreset('octagon')">Octagon</button>
+                <button class="preset-button" onclick="usePreset('circle')">Circle</button>
+            </div>
+            
+            <div class="room-editor">
+                <label for="roomPoints">Room Points (x,y coordinates in feet):</label>
+                <textarea id="roomPoints" placeholder="Enter coordinates like:&#10;2,2&#10;18,2&#10;18,12&#10;12,12&#10;12,18&#10;2,18"></textarea>
+                
+                <div class="room-help">
+                    <strong>How to use:</strong><br>
+                    • Enter one coordinate per line in format: x,y<br>
+                    • Coordinates are in feet from top-left corner<br>
+                    • Points will be connected in order to form the room<br>
+                    • Minimum 3 points required<br>
+                    • Example: "10,5" means 10 feet right, 5 feet down
+                </div>
+                
+                <div style="margin-top: 20px; text-align: center;">
+                    <button onclick="applyRoomChanges()">Apply Changes</button>
+                    <button onclick="closeRoomEditor()" style="background: #6c757d;">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+    <script>
+        let canvas;
+        let gridSize = 20; // pixels per foot
+        let showGrid = true;
+        let selectedObject = null;
+        
+        // Default irregular room (L-shaped, coordinates in feet)
+        let roomPolygon = [
+            {x: 2, y: 2},
+            {x: 18, y: 2},
+            {x: 18, y: 12},
+            {x: 12, y: 12},
+            {x: 12, y: 18},
+            {x: 2, y: 18}
+        ];
+        
+        // Sound camp furniture templates with better dark mode colors
+        const furnitureTypes = {
+            djbooth: {width: 6, height: 3, color: '#4a4a4a', name: 'DJ Booth'},
+            pastack: {width: 3, height: 2, color: '#333333', name: 'PA Stack'},
+            yurt: {width: 12, height: 12, color: '#a0845c', name: 'Yurt'},
+            loveseat: {width: 4, height: 2, color: '#8B4513', name: 'Loveseat'},
+            tent: {width: 8, height: 6, color: '#4a8a4a', name: 'Tent'},
+            kitchen: {width: 6, height: 4, color: '#cd853f', name: 'Camp Kitchen'},
+            bar: {width: 8, height: 3, color: '#8b6914', name: 'Bar'},
+            stage: {width: 12, height: 8, color: '#666666', name: 'Stage'},
+            generator: {width: 3, height: 2, color: '#ff6b47', name: 'Generator'},
+            cooler: {width: 2, height: 1.5, color: '#5a8db4', name: 'Cooler'}
+        };
+
+        // Room presets
+        const roomPresets = {
+            rectangle: [
+                {x: 2, y: 2},
+                {x: 22, y: 2},
+                {x: 22, y: 18},
+                {x: 2, y: 18}
+            ],
+            lshape: [
+                {x: 2, y: 2},
+                {x: 18, y: 2},
+                {x: 18, y: 12},
+                {x: 12, y: 12},
+                {x: 12, y: 18},
+                {x: 2, y: 18}
+            ],
+            octagon: [
+                {x: 8, y: 2},
+                {x: 16, y: 2},
+                {x: 22, y: 8},
+                {x: 22, y: 16},
+                {x: 16, y: 22},
+                {x: 8, y: 22},
+                {x: 2, y: 16},
+                {x: 2, y: 8}
+            ],
+            circle: generateCirclePoints(12, 12, 10, 16)
+        };
+
+        function generateCirclePoints(centerX, centerY, radius, numPoints) {
+            const points = [];
+            for (let i = 0; i < numPoints; i++) {
+                const angle = (i / numPoints) * 2 * Math.PI;
+                const x = centerX + radius * Math.cos(angle);
+                const y = centerY + radius * Math.sin(angle);
+                points.push({x: Math.round(x), y: Math.round(y)});
+            }
+            return points;
+        }
+        
+        function initCanvas() {
+            canvas = new fabric.Canvas('canvas', {
+                backgroundColor: '#1a1a1a',
+                selection: true,
+                preserveObjectStacking: true
+            });
+            
+            // Set up canvas events
+            canvas.on('selection:created', onObjectSelected);
+            canvas.on('selection:updated', onObjectSelected);
+            canvas.on('selection:cleared', onObjectCleared);
+            canvas.on('object:moving', onObjectMoving);
+            canvas.on('object:rotating', updateRotationDisplay);
+            canvas.on('object:scaled', constrainScaling);
+            canvas.on('mouse:dblclick', onDoubleClick);
+            canvas.on('mouse:down', onMouseDown);
+            canvas.on('mouse:up', onMouseUp);
+            canvas.on('mouse:move', onMouseMove);
+            
+            // Draw initial grid and room outline
+            drawGrid();
+            drawRoomOutline();
+            
+            // Enable object controls with dark theme colors
+            fabric.Object.prototype.set({
+                transparentCorners: false,
+                cornerColor: '#007bff',
+                cornerStyle: 'circle',
+                borderColor: '#007bff',
+                borderScaleFactor: 1,
+                cornerSize: 8,
+                hasRotatingPoint: true,
+                rotatingPointOffset: 20,
+                lockScalingX: true,
+                lockScalingY: true
+            });
+        }
+        
+        function drawGrid() {
+            if (!showGrid) return;
+            
+            // Remove existing grid
+            canvas.getObjects().forEach(obj => {
+                if (obj.isGrid) {
+                    canvas.remove(obj);
+                }
+            });
+            
+            // Draw vertical lines with darker grid for dark theme
+            for (let i = 0; i <= canvas.width; i += gridSize) {
+                const line = new fabric.Line([i, 0, i, canvas.height], {
+                    stroke: '#404040',
+                    strokeWidth: 1,
+                    selectable: false,
+                    evented: false,
+                    isGrid: true
+                });
+                canvas.add(line);
+                canvas.sendToBack(line);
+            }
+            
+            // Draw horizontal lines
+            for (let i = 0; i <= canvas.height; i += gridSize) {
+                const line = new fabric.Line([0, i, canvas.width, i], {
+                    stroke: '#404040',
+                    strokeWidth: 1,
+                    selectable: false,
+                    evented: false,
+                    isGrid: true
+                });
+                canvas.add(line);
+                canvas.sendToBack(line);
+            }
+        }
+        
+        function drawRoomOutline() {
+            // Remove existing room outline
+            canvas.getObjects().forEach(obj => {
+                if (obj.isRoom) {
+                    canvas.remove(obj);
+                }
+            });
+            
+            // Convert room polygon points to canvas coordinates
+            const points = roomPolygon.map(p => ({
+                x: p.x * gridSize,
+                y: p.y * gridSize
+            }));
+            
+            // Create polygon path
+            const pathStr = points.map((p, i) => 
+                (i === 0 ? 'M' : 'L') + ' ' + p.x + ' ' + p.y
+            ).join(' ') + ' Z';
+            
+            const roomPath = new fabric.Path(pathStr, {
+                fill: 'transparent',
+                stroke: '#ffffff',
+                strokeWidth: 3,
+                selectable: false,
+                evented: false,
+                isRoom: true
+            });
+            
+            canvas.add(roomPath);
+            canvas.sendToBack(roomPath);
+        }
+        
+        function createFurnitureObject(type, template, x, y) {
+            // Create a custom fabric object that renders text directly on the rectangle
+            const FurnitureRect = fabric.util.createClass(fabric.Rect, {
+                type: 'furnitureRect',
+                
+                initialize: function(options) {
+                    options = options || {};
+                    this.callSuper('initialize', options);
+                    this.set({
+                        furnitureType: type,
+                        furnitureName: template.name,
+                        furnitureWidth: template.width,
+                        furnitureHeight: template.height
+                    });
+                },
+                
+                _render: function(ctx) {
+                    // Call the parent render method to draw the rectangle
+                    this.callSuper('_render', ctx);
+                    
+                    // Draw the text on top
+                    ctx.save();
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    
+                    // Draw text in the center of the rectangle
+                    ctx.fillText(this.furnitureName, 0, 0);
+                    ctx.restore();
+                }
+            });
+            
+            const furniture = new FurnitureRect({
+                left: x || 100,
+                top: y || 100,
+                width: template.width * gridSize,
+                height: template.height * gridSize,
+                fill: template.color,
+                stroke: '#666',
+                strokeWidth: 1,
+                rx: 3,
+                ry: 3,
+                transparentCorners: false,
+                hasRotatingPoint: true,
+                snapAngle: 15,
+                snapThreshold: 5
+            });
+            
+            return furniture;
+        }
+        
+        function addFurniture() {
+            const type = document.getElementById('furnitureType').value;
+            const template = furnitureTypes[type];
+            
+            const furniture = createFurnitureObject(type, template);
+            canvas.add(furniture);
+            canvas.setActiveObject(furniture);
+            canvas.renderAll();
+        }
+
+        let roomEditMode = false;
+        let roomPoints = [];
+        let isDraggingRoomPoint = false;
+        let dragPointIndex = -1;
+
+        function openRoomEditor() {
+            roomEditMode = true;
+            canvas.selection = false; // Disable furniture selection
+            
+            // Hide all furniture temporarily for cleaner editing
+            canvas.getObjects().forEach(obj => {
+                if (!obj.isGrid && !obj.isRoom && !obj.isRoomPoint) {
+                    obj.visible = false;
+                }
+            });
+            
+            createRoomEditPoints();
+            canvas.renderAll();
+            
+            // Update UI
+            document.querySelector('.controls').style.display = 'none';
+            document.getElementById('rotationControl').style.display = 'none';
+            
+            // Show room editing instructions with dark theme
+            const instructions = document.querySelector('.instructions');
+            instructions.innerHTML = `
+                <div style="background: linear-gradient(135deg, #007bff, #0056b3); color: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">
+                    <strong>🎯 Room Editing Mode</strong><br>
+                    • Drag blue circles to move points<br>
+                    • Double-click anywhere to add a new point<br>
+                    • Right-click on points to delete them (minimum 3 points)<br>
+                    • Points connect in order to form room outline
+                </div>
+                <button onclick="finishRoomEdit()" style="background: #28a745; color: white; padding: 12px 24px; border: none; border-radius: 6px; margin-right: 10px; cursor: pointer; font-weight: 500; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">✓ Finish Editing</button>
+                <button onclick="cancelRoomEdit()" style="background: #dc3545; color: white; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">✗ Cancel</button>
+            `;
+        }
+
+        function createRoomEditPoints() {
+            // Remove existing room edit points
+            canvas.getObjects().forEach(obj => {
+                if (obj.isRoomPoint) {
+                    canvas.remove(obj);
+                }
+            });
+            
+            roomPoints = [];
+            
+            // Create draggable points for each room corner
+            roomPolygon.forEach((point, index) => {
+                const circle = new fabric.Circle({
+                    left: point.x * gridSize - 8,
+                    top: point.y * gridSize - 8,
+                    radius: 8,
+                    fill: '#007bff',
+                    stroke: '#ffffff',
+                    strokeWidth: 2,
+                    hasControls: false,
+                    hasBorders: false,
+                    selectable: true,
+                    hoverCursor: 'move',
+                    moveCursor: 'move',
+                    isRoomPoint: true,
+                    roomPointIndex: index,
+                    originX: 'center',
+                    originY: 'center'
+                });
+                
+                roomPoints.push(circle);
+                canvas.add(circle);
+            });
+            
+            updateRoomPreview();
+        }
+        
+        function updateRoomPreview() {
+            // Remove existing room outline
+            canvas.getObjects().forEach(obj => {
+                if (obj.isRoom) {
+                    canvas.remove(obj);
+                }
+            });
+            
+            if (roomPoints.length < 3) return;
+            
+            // Update roomPolygon from current point positions
+            roomPolygon = roomPoints.map(point => ({
+                x: Math.round((point.left + 8) / gridSize),
+                y: Math.round((point.top + 8) / gridSize)
+            }));
+            
+            // Create preview polygon
+            const points = roomPolygon.map(p => ({
+                x: p.x * gridSize,
+                y: p.y * gridSize
+            }));
+            
+            const pathStr = points.map((p, i) => 
+                (i === 0 ? 'M' : 'L') + ' ' + p.x + ' ' + p.y
+            ).join(' ') + ' Z';
+            
+            const roomPath = new fabric.Path(pathStr, {
+                fill: 'rgba(0, 123, 255, 0.1)',
+                stroke: '#007bff',
+                strokeWidth: 2,
+                strokeDashArray: [5, 5],
+                selectable: false,
+                evented: false,
+                isRoom: true
+            });
+            
+            canvas.add(roomPath);
+            canvas.sendToBack(roomPath);
+            
+            // Bring grid to front of room but behind points
+            canvas.getObjects().forEach(obj => {
+                if (obj.isGrid) {
+                    canvas.sendToBack(obj);
+                }
+                if (obj.isRoomPoint) {
+                    canvas.bringToFront(obj);
+                }
+            });
+        }
+        
+        function finishRoomEdit() {
+            roomEditMode = false;
+            canvas.selection = true; // Re-enable furniture selection
+            
+            // Remove room edit points
+            canvas.getObjects().forEach(obj => {
+                if (obj.isRoomPoint) {
+                    canvas.remove(obj);
+                }
+            });
+            
+            // Show all furniture again
+            canvas.getObjects().forEach(obj => {
+                if (!obj.isGrid && !obj.isRoom) {
+                    obj.visible = true;
+                }
+            });
+            
+            // Redraw final room outline
+            drawRoomOutline();
+            canvas.renderAll();
+            
+            // Restore UI
+            document.querySelector('.controls').style.display = 'block';
+            document.querySelector('.instructions').innerHTML = `
+                <strong>Instructions:</strong> 
+                Click to select • Drag to move • Use rotation handles or slider to rotate • 
+                Double-click to edit • Right-click to delete • Grid squares = 1 foot
+            `;
+        }
+        
+        function cancelRoomEdit() {
+            roomEditMode = false;
+            canvas.selection = true;
+            
+            // Remove room edit points without saving changes
+            canvas.getObjects().forEach(obj => {
+                if (obj.isRoomPoint) {
+                    canvas.remove(obj);
+                }
+            });
+            
+            // Show all furniture again
+            canvas.getObjects().forEach(obj => {
+                if (!obj.isGrid && !obj.isRoom) {
+                    obj.visible = true;
+                }
+            });
+            
+            // Restore original room outline
+            drawRoomOutline();
+            canvas.renderAll();
+            
+            // Restore UI
+            document.querySelector('.controls').style.display = 'block';
+            document.querySelector('.instructions').innerHTML = `
+                <strong>Instructions:</strong> 
+                Click to select • Drag to move • Use rotation handles or slider to rotate • 
+                Double-click to edit • Right-click to delete • Grid squares = 1 foot
+            `;
+        }
+
+        function usePreset(presetName) {
+            const preset = roomPresets[presetName];
+            if (preset) {
+                const pointsText = preset.map(p => `${p.x},${p.y}`).join('\n');
+                document.getElementById('roomPoints').value = pointsText;
+            }
+        }
+
+        function applyRoomChanges() {
+            const pointsText = document.getElementById('roomPoints').value.trim();
+            
+            if (!pointsText) {
+                alert('Please enter room coordinates');
+                return;
+            }
+
+            try {
+                const points = pointsText.split('\n').map(line => {
+                    line = line.trim();
+                    if (!line) return null;
+                    
+                    const [x, y] = line.split(',').map(n => parseFloat(n.trim()));
+                    
+                    if (isNaN(x) || isNaN(y)) {
+                        throw new Error(`Invalid coordinates: ${line}`);
+                    }
+                    
+                    return {x, y};
+                }).filter(p => p !== null);
+                
+                if (points.length < 3) {
+                    alert('Need at least 3 points to create a room');
+                    return;
+                }
+                
+                roomPolygon = points;
+                drawRoomOutline();
+                canvas.renderAll();
+                closeRoomEditor();
+                
+            } catch (error) {
+                alert('Error parsing coordinates: ' + error.message + '\n\nPlease use format:\nx1,y1\nx2,y2\nx3,y3\n...');
+            }
+        }
+
+        function closeRoomEditor() {
+            document.getElementById('roomModal').style.display = 'none';
+        }
+        
+        function saveRoom() {
+            const roomData = {
+                polygon: roomPolygon,
+                name: 'My Room',
+                timestamp: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(roomData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'room_shape.json';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        function loadRoom() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const roomData = JSON.parse(e.target.result);
+                            if (roomData.polygon && Array.isArray(roomData.polygon)) {
+                                roomPolygon = roomData.polygon;
+                                drawRoomOutline();
+                                canvas.renderAll();
+                            } else {
+                                alert('Invalid room file format');
+                            }
+                        } catch (error) {
+                            alert('Error loading room: ' + error.message);
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            input.click();
+        }
+        
+        function onObjectMoving(e) {
+            const obj = e.target;
+            
+            if (roomEditMode && obj.isRoomPoint) {
+                // Snap room points to grid
+                const snapSize = gridSize;
+                obj.set({
+                    left: Math.round(obj.left / snapSize) * snapSize,
+                    top: Math.round(obj.top / snapSize) * snapSize
+                });
+                updateRoomPreview();
+            } else if (!roomEditMode) {
+                // Snap furniture to grid
+                snapToGrid(e);
+            }
+        }
+        
+        function onDoubleClick(e) {
+            if (roomEditMode) {
+                // Add new point at double-click location
+                const pointer = canvas.getPointer(e.e);
+                const gridX = Math.round(pointer.x / gridSize) * gridSize;
+                const gridY = Math.round(pointer.y / gridSize) * gridSize;
+                
+                // Find the best position to insert the new point
+                const newPoint = {x: gridX / gridSize, y: gridY / gridSize};
+                const insertIndex = findBestInsertionPoint(newPoint);
+                
+                // Insert into roomPolygon
+                roomPolygon.splice(insertIndex, 0, newPoint);
+                
+                // Recreate all points
+                createRoomEditPoints();
+                canvas.renderAll();
+            } else {
+                // Show room editor modal for furniture editing mode
+                document.getElementById('roomModal').style.display = 'block';
+                document.getElementById('roomPoints').value = roomPolygon.map(p => `${p.x},${p.y}`).join('\n');
+            }
+        }
+        
+        function findBestInsertionPoint(newPoint) {
+            if (roomPolygon.length < 2) return roomPolygon.length;
+            
+            let bestIndex = roomPolygon.length;
+            let minDistance = Infinity;
+            
+            // Check distance to each edge and find the closest one
+            for (let i = 0; i < roomPolygon.length; i++) {
+                const p1 = roomPolygon[i];
+                const p2 = roomPolygon[(i + 1) % roomPolygon.length];
+                
+                const distance = distanceToLineSegment(newPoint, p1, p2);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    bestIndex = (i + 1) % roomPolygon.length;
+                }
+            }
+            
+            return bestIndex;
+        }
+        
+        function distanceToLineSegment(point, lineStart, lineEnd) {
+            const A = point.x - lineStart.x;
+            const B = point.y - lineStart.y;
+            const C = lineEnd.x - lineStart.x;
+            const D = lineEnd.y - lineStart.y;
+            
+            const dot = A * C + B * D;
+            const lenSq = C * C + D * D;
+            
+            if (lenSq === 0) return Math.sqrt(A * A + B * B);
+            
+            let t = Math.max(0, Math.min(1, dot / lenSq));
+            
+            const projX = lineStart.x + t * C;
+            const projY = lineStart.y + t * D;
+            
+            const dx = point.x - projX;
+            const dy = point.y - projY;
+            
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+        
+        function onMouseDown(e) {
+            if (roomEditMode && e.target && e.target.isRoomPoint) {
+                isDraggingRoomPoint = true;
+                dragPointIndex = e.target.roomPointIndex;
+            }
+        }
+        
+        function onMouseUp(e) {
+            if (roomEditMode && e.e.button === 2 && e.target && e.target.isRoomPoint) {
+                // Right-click to delete point
+                if (roomPolygon.length > 3) {
+                    const pointIndex = e.target.roomPointIndex;
+                    roomPolygon.splice(pointIndex, 1);
+                    createRoomEditPoints();
+                    canvas.renderAll();
+                }
+                e.e.preventDefault();
+            }
+            isDraggingRoomPoint = false;
+            dragPointIndex = -1;
+        }
+        
+        function onMouseMove(e) {
+            if (roomEditMode && isDraggingRoomPoint) {
+                updateRoomPreview();
+            }
+        }
+        
+        function snapToGrid(e) {
+            const obj = e.target;
+            const snapSize = gridSize;
+            
+            obj.set({
+                left: Math.round(obj.left / snapSize) * snapSize,
+                top: Math.round(obj.top / snapSize) * snapSize
+            });
+        }
+        
+        function constrainScaling(e) {
+            // Prevent scaling to maintain furniture proportions
+            e.target.set({
+                scaleX: 1,
+                scaleY: 1
+            });
+        }
+        
+        function onObjectSelected(e) {
+            selectedObject = e.selected[0];
+            document.getElementById('rotationControl').classList.add('active');
+            updateRotationDisplay();
+        }
+        
+        function onObjectCleared() {
+            selectedObject = null;
+            document.getElementById('rotationControl').classList.remove('active');
+        }
+        
+        function updateRotationDisplay() {
+            if (selectedObject) {
+                const angle = Math.round(selectedObject.angle || 0);
+                document.getElementById('rotationSlider').value = angle;
+                document.getElementById('rotationValue').textContent = angle + '°';
+            }
+        }
+        
+        function rotateSelectedToAngle(angle) {
+            if (selectedObject) {
+                selectedObject.set('angle', parseFloat(angle));
+                canvas.renderAll();
+                document.getElementById('rotationValue').textContent = angle + '°';
+            }
+        }
+        
+        function resetRotation() {
+            if (selectedObject) {
+                selectedObject.set('angle', 0);
+                canvas.renderAll();
+                updateRotationDisplay();
+            }
+        }
+        
+        function deleteSelected() {
+            const activeObjects = canvas.getActiveObjects();
+            if (activeObjects.length) {
+                activeObjects.forEach(obj => canvas.remove(obj));
+                canvas.discardActiveObject();
+                canvas.renderAll();
+            }
+        }
+        
+        function clearAll() {
+            if (confirm('Clear all furniture?')) {
+                const objects = canvas.getObjects().filter(obj => !obj.isGrid && !obj.isRoom);
+                objects.forEach(obj => canvas.remove(obj));
+                canvas.renderAll();
+            }
+        }
+        
+        function toggleGrid() {
+            showGrid = !showGrid;
+            drawGrid();
+            canvas.renderAll();
+        }
+        
+        function saveLayout() {
+            const objects = canvas.getObjects().filter(obj => !obj.isGrid && !obj.isRoom);
+            const layoutData = {
+                room: roomPolygon,
+                objects: objects.map(obj => ({
+                    type: obj.furnitureType,
+                    name: obj.furnitureName,
+                    left: obj.left,
+                    top: obj.top,
+                    angle: obj.angle || 0,
+                    width: obj.furnitureWidth,
+                    height: obj.furnitureHeight
+                })),
+                timestamp: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(layoutData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'furniture_layout.json';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        function loadLayout() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const layoutData = JSON.parse(e.target.result);
+                            
+                            // Clear existing furniture
+                            const objects = canvas.getObjects().filter(obj => !obj.isGrid && !obj.isRoom);
+                            objects.forEach(obj => canvas.remove(obj));
+                            
+                            // Load room if included
+                            if (layoutData.room) {
+                                roomPolygon = layoutData.room;
+                                drawRoomOutline();
+                            }
+                            
+                            // Load furniture
+                            if (layoutData.objects) {
+                                layoutData.objects.forEach(objData => {
+                                    const template = furnitureTypes[objData.type] || {
+                                        width: objData.width,
+                                        height: objData.height,
+                                        color: '#9370DB',
+                                        name: objData.name
+                                    };
+                                    
+                                    const furniture = createFurnitureObject(objData.type, template, objData.left, objData.top);
+                                    furniture.set('angle', objData.angle || 0);
+                                    canvas.add(furniture);
+                                });
+                            }
+                            
+                            canvas.renderAll();
+                        } catch (error) {
+                            alert('Error loading file: ' + error.message);
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            input.click();
+        }
+        
+        // Initialize when page loads
+        window.addEventListener('load', () => {
+            initCanvas();
+            
+            // Disable context menu on canvas for right-click functionality
+            document.getElementById('canvas').addEventListener('contextmenu', (e) => {
+                if (roomEditMode) {
+                    e.preventDefault();
+                }
+            });
+        });
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const modal = document.getElementById('roomModal');
+            if (event.target === modal) {
+                closeRoomEditor();
+            }
+        }
+    </script>
+</body>
+</html>
